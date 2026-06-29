@@ -45,9 +45,10 @@ public class ConsistentVersionsPlugin implements Plugin<Project> {
         });
         project.getPluginManager().apply(VersionsLockPlugin.class);
         project.getPluginManager().apply(VersionsPropsPlugin.class);
-        project.getPluginManager().apply(GetVersionPlugin.class);
 
         project.allprojects(proj -> {
+            proj.getPluginManager().apply(GetVersionPlugin.class);
+
             proj.getPluginManager().withPlugin("java", _plugin -> {
                 proj.getPluginManager().apply(FixLegacyJavaConfigurationsPlugin.class);
             });
@@ -98,6 +99,11 @@ public class ConsistentVersionsPlugin implements Plugin<Project> {
 
         public final void configureGcvBaseAttributes(AttributeContainer attributes) {
             attributes.attribute(Usage.USAGE_ATTRIBUTE, gradleUsageForGcv());
+            attributes.attribute(GcvBuildPath.ATTRIBUTE, buildPath());
+        }
+
+        public final void configureGcvSourceAttributes(AttributeContainer attributes) {
+            attributes.attribute(VersionsLockPlugin.GCV_USAGE_ATTRIBUTE, VersionsLockPlugin.GcvUsage.GCV_SOURCE);
             attributes.attribute(GcvBuildPath.ATTRIBUTE, buildPath());
         }
     }
