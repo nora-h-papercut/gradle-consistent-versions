@@ -34,9 +34,11 @@ public class VersionsPropsTest {
     @Test
     void load_valid_versions_props() throws IOException {
         Path propsFile = tempDir.resolve("versions.props");
-        Files.writeString(propsFile, "com.palantir.test:test = 1.0.0", StandardCharsets.UTF_8);
+        Path lockFile = tempDir.resolve("versions.lock");
+        Files.writeString(propsFile, "com.palantir.test:test = 1.0.+", StandardCharsets.UTF_8);
+        Files.writeString(lockFile, "com.palantir.test:test:1.0.0 (1 constraints: 0005ef35)", StandardCharsets.UTF_8);
 
-        VersionsProps versionsProps = VersionsProps.loadFromFile(propsFile);
+        VersionsProps versionsProps = VersionsProps.loadFromFile(propsFile, false);
         assertThat(versionsProps.getFuzzyResolver().exactMatches()).containsExactly("com.palantir.test:test");
         assertThat(versionsProps.getFuzzyResolver().globs()).isEmpty();
     }
@@ -46,7 +48,7 @@ public class VersionsPropsTest {
         Path propsFile = tempDir.resolve("versions.props");
         Files.writeString(propsFile, "com.palantir.test:test:1.0.0", StandardCharsets.UTF_8);
 
-        assertThatThrownBy(() -> VersionsProps.loadFromFile(propsFile))
+        assertThatThrownBy(() -> VersionsProps.loadFromFile(propsFile, false))
                 .isInstanceOf(ExceptionWithSuggestion.class)
                 .hasMessageContaining("invalid constraint");
     }
@@ -56,7 +58,7 @@ public class VersionsPropsTest {
         Path propsFile = tempDir.resolve("versions.props");
         Files.writeString(propsFile, "com.palantir.test:test = ", StandardCharsets.UTF_8);
 
-        assertThatThrownBy(() -> VersionsProps.loadFromFile(propsFile))
+        assertThatThrownBy(() -> VersionsProps.loadFromFile(propsFile, false))
                 .isInstanceOf(ExceptionWithSuggestion.class)
                 .hasMessageContaining("invalid constraint");
     }

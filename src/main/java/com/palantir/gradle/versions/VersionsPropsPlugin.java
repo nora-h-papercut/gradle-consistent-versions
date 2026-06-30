@@ -302,18 +302,18 @@ public abstract class VersionsPropsPlugin implements Plugin<Project> {
     private static VersionsProps getVersionsProps(Project rootProject) {
         VersionsProps versionsProps = rootProject.getExtensions().findByType(VersionsProps.class);
         if (versionsProps == null) {
-            versionsProps = loadVersionsProps(rootProject.file("versions.props").toPath());
+            versionsProps = loadVersionsProps(rootProject.file("versions.props").toPath(), VersionsLockPlugin.shouldWriteLocks(rootProject));
             rootProject.getExtensions().add(VERSION_PROPS_EXTENSION, versionsProps);
         }
         return versionsProps;
     }
 
-    private static VersionsProps loadVersionsProps(Path versionsPropsFile) {
+    private static VersionsProps loadVersionsProps(Path versionsPropsFile, boolean writeLocks) {
         if (!Files.exists(versionsPropsFile)) {
             return VersionsProps.empty();
         }
         log.debug("Configuring constraints from properties file {}", versionsPropsFile);
-        return VersionsProps.loadFromFile(versionsPropsFile);
+        return VersionsProps.loadFromFile(versionsPropsFile, writeLocks);
     }
 
     private static void checkPreconditions() {

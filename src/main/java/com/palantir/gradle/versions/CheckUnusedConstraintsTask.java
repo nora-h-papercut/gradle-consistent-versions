@@ -84,7 +84,7 @@ public abstract class CheckUnusedConstraintsTask extends DefaultTask {
                 .collect(Collectors.toSet());
 
         VersionsProps versionsProps =
-                VersionsProps.loadFromFile(getPropsFile().get().getAsFile().toPath());
+                VersionsProps.loadFromFile(getPropsFile().get().getAsFile().toPath(), true);
 
         Set<String> exactConstraints = versionsProps.getFuzzyResolver().exactMatches();
         Set<String> unusedConstraints = new HashSet<>(Sets.difference(exactConstraints, artifacts));
@@ -103,8 +103,8 @@ public abstract class CheckUnusedConstraintsTask extends DefaultTask {
             getLogger()
                     .lifecycle("Removing unused pins from versions.props:\n"
                             + unusedConstraints.stream()
-                                    .map(name -> String.format(" - '%s'", name))
-                                    .collect(Collectors.joining("\n")));
+                            .map(name -> String.format(" - '%s'", name))
+                            .collect(Collectors.joining("\n")));
             writeVersionsProps(getPropsFile().get().getAsFile(), unusedConstraints);
             return;
         }
@@ -117,7 +117,8 @@ public abstract class CheckUnusedConstraintsTask extends DefaultTask {
 
     private static Set<ResolvedCoordinate> readModulesFile(File file) {
         try {
-            return OBJECT_MAPPER.readValue(file, new TypeReference<>() {});
+            return OBJECT_MAPPER.readValue(file, new TypeReference<>() {
+            });
         } catch (IOException e) {
             throw new UncheckedIOException("Error reading " + file, e);
         }
@@ -126,8 +127,8 @@ public abstract class CheckUnusedConstraintsTask extends DefaultTask {
     private static void writeVersionsProps(File propsFile, Set<String> unusedConstraints) {
         List<String> lines = readVersionsPropsLines(propsFile);
         try (BufferedWriter writer0 =
-                        Files.newBufferedWriter(propsFile.toPath(), StandardOpenOption.TRUNCATE_EXISTING);
-                PrintWriter writer = new PrintWriter(writer0)) {
+                     Files.newBufferedWriter(propsFile.toPath(), StandardOpenOption.TRUNCATE_EXISTING);
+             PrintWriter writer = new PrintWriter(writer0)) {
             for (String line : lines) {
                 if (unusedConstraints.stream().noneMatch(line::startsWith)) {
                     writer.println(line);

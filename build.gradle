@@ -37,7 +37,7 @@ apply plugin: 'com.palantir.failure-reports'
 apply plugin: 'com.palantir.baseline-java-versions'
 apply plugin: 'com.palantir.jdks.latest'
 
-version "3.17.0-noidea"
+version "3.17.0-noidea-dynpatch"
 
 allprojects {
     apply plugin: 'com.palantir.java-format'

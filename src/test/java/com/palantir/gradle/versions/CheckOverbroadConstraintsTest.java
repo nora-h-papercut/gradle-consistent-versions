@@ -308,7 +308,7 @@ class CheckOverbroadConstraintsTest {
             List<String> newPropsLines = CheckOverbroadConstraints.generateUpdatedPropsLines(oldToNewLines, propsLines);
 
             // Ensure running a second time makes / suggests no changes
-            VersionsProps checkVersionProps = VersionsProps.fromLines(newPropsLines, null);
+            VersionsProps checkVersionProps = VersionsProps.fromLines(newPropsLines, null, false);
             Map<String, List<String>> checkOldToNewLines =
                     CheckOverbroadConstraints.determineNewLines(checkVersionProps, lockState);
             assertThat(CheckOverbroadConstraints.generateUpdatedPropsLines(checkOldToNewLines, newPropsLines))
@@ -378,7 +378,7 @@ class CheckOverbroadConstraintsTest {
 
             public Builder withVersionsProps(String... lines) {
                 this.propsLines = Arrays.asList(lines);
-                this.versionsProps = VersionsProps.fromLines(Arrays.asList(lines), null);
+                this.versionsProps = VersionsProps.fromLines(Arrays.asList(lines), null, false);
                 return this;
             }
 

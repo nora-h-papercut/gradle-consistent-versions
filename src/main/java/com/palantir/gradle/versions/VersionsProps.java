@@ -18,6 +18,7 @@ package com.palantir.gradle.versions;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Sets;
+import com.palantir.gradle.versions.lockstate.Line;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -51,16 +52,24 @@ public final class VersionsProps {
         return fuzzyResolver;
     }
 
-    public static VersionsProps loadFromFile(Path path) {
+    public static VersionsProps loadFromFile(Path path, boolean writeLocks) {
         if (!Files.exists(path)) {
             return VersionsProps.empty();
         }
 
         List<String> lines = safeReadLines(path);
-        return fromLines(lines, path);
+        return fromLines(lines, path, writeLocks);
     }
 
-    public static VersionsProps fromLines(List<String> lines, Path path) {
+    public static VersionsProps fromLines(List<String> lines, Path path, boolean writeLocks) {
+        Path lock = path.getParent().resolve("versions.lock");
+        Map<String, String> lockVersions = new HashMap<>();
+        if (!writeLocks && Files.exists(lock)) { // Hack - Use lock numbers to fill in dynamic versions to prevent conflicts
+            for (Line line : new ConflictSafeLockFile(lock).readLocks().allLines()) {
+                lockVersions.put(line.identifier().toString(), line.version());
+            }
+        }
+
         FuzzyPatternResolver.Builder builder = FuzzyPatternResolver.builder();
         Map<String, String> versions = new HashMap<>();
         int lineNumber = 1;
@@ -69,6 +78,9 @@ public final class VersionsProps {
             if (constraint.matches()) {
                 String key = constraint.group(1);
                 String value = constraint.group(2);
+                if (value.endsWith("+") && lockVersions.getOrDefault(key, "").startsWith(value.replace("+", ""))) {
+                    value = lockVersions.get(key); // Hack - Use lock numbers to fill in dynamic versions to prevent conflicts
+                }
                 Validators.checkResultOrThrow(
                         CharMatcher.is(':').countIn(key) == 1,
                         String.format("Encountered invalid artifact name '%s' in versions.props", key),
